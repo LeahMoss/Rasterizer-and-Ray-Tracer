@@ -11,13 +11,16 @@ import org.smurn.jply.PlyReaderFile;
 public class RenderObject {
 
     /* data fields to store points, colors, faces information read from PLY file */
-	private float[] points = null;
-	private float[] colors = null;
-	private int[] faces = null;
+	private float[][] points = null;
+	private float[][] colours = null;
+	private int[][] faces = null;
 	
-	public void loadPLY() throws IOException {
-		String path = getClass().getClassLoader().getResource("teapot.ply").toString().substring(6);
-		File file = new File(path);
+	private String path = getClass().getClassLoader().getResource("teapot.ply")
+							.toString().substring(6);
+	private File file = new File(path);
+	
+	public RenderObject() throws IOException {
+		
 		PlyReader ply = new PlyReaderFile(file);
 	
 		int vertexCount = ply.getElementCount("vertex");
@@ -32,15 +35,15 @@ public class RenderObject {
 			if (elementType.equals("vertex")) {
 				if (points != null)
 					continue;
-				points = new float[3 * vertexCount];
+				points = new float[vertexCount][3];
 	
 				Element element;
 				int x = 0;
 				while ((element = reader.readElement()) != null) {
 	                /* manipulated array indexes to store  */
-					points[3 * x + 0] = (float) element.getDouble("x");
-					points[3 * x + 1] = (float) element.getDouble("y");
-					points[3 * x + 2] = (float) element.getDouble("z");
+					points[x][0] = (float) element.getDouble("x");
+					points[x][1] = (float) element.getDouble("y");
+					points[x][2] = (float) element.getDouble("z");
 					x++;
 				}
 	
@@ -48,8 +51,8 @@ public class RenderObject {
 				
 				if (faces != null)
 					continue;
-				faces = new int[3 * triangleCount];
-				colors = new float[3 * triangleCount];
+				faces = new int[triangleCount][3];
+				colours = new float[triangleCount][3];
 	
 				Element element;
 				int x = 0;
@@ -74,12 +77,10 @@ public class RenderObject {
 						throw new IOException("Failed to read vertices");
 					}
 	
-					faces[3 * x + 0] = vertex_index[0];
-					faces[3 * x + 1] = vertex_index[1];
-					faces[3 * x + 2] = vertex_index[2];
-					colors[3 * x + 0] = (float) element.getDouble("red") / 255f;
-					colors[3 * x + 1] = (float) element.getDouble("green") / 255f;
-					colors[3 * x + 2] = (float) element.getDouble("blue") / 255f;
+					faces[x] = vertex_index;
+					colours[x][0] = (float) element.getDouble("red") / 255f;
+					colours[x][1] = (float) element.getDouble("green") / 255f;
+					colours[x][2] = (float) element.getDouble("blue") / 255f;
 					
 					x++;
 				}
@@ -92,16 +93,16 @@ public class RenderObject {
 	}
 	   
 	    /* additional methods to return detailed description of object for further manipulation */
-	public float[] getPoints(){
+	public float[][] getPoints(){
 		return this.points;
 	}
 	
-	public int[] getFaces(){
+	public int[][] getFaces(){
 		return this.faces;
 	}
 	
-	public float[] getColors(){
-		return this.colors;
+	public float[][] getColors(){
+		return this.colours;
 	}
 	
 }
