@@ -12,6 +12,8 @@ public class Camera {
 		 								 
 	private float[] t;
 	
+	private float f, cx, cy;
+	
 	public Camera(float[][] vertices, float width, boolean flip) {
 		// Find the minimum and maximum x,y,z
 		float[] min = vertices[0].clone(), max = vertices[0].clone();
@@ -62,11 +64,11 @@ public class Camera {
 		
 		float width2d = 2*Math.max(maxX, Math.abs(minX));
 		float height2d = 2*Math.max(maxY, Math.abs(minY));
-		float f = width/width2d;
 		float aspect = height2d/width2d;
 		
-		float cx = width/2;
-		float cy = (float) (Math.ceil(width*aspect)/2);
+		this.f = width/width2d;
+		this.cx = width/2;
+		this.cy = (float) (Math.ceil(width*aspect)/2);
 		
 		this.K[0][0] = f;
 		this.K[1][1] = f;
@@ -119,5 +121,17 @@ public class Camera {
 		}
 		
 		return projected;
+	}
+	
+	public float getCx() {
+		return this.cx;
+	}
+	
+	public float getCy() {
+		return this.cy;
+	}
+	
+	public float getF() {
+		return this.f;
 	}
 }
