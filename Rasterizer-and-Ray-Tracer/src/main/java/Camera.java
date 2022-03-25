@@ -2,19 +2,27 @@ package main.java;
 
 public class Camera {
 	
-	private float[][] R = new float[][] {{1,0,0}, 
-		 								 {0,1,0}, 
-		 								 {0,0,1}}; 
+	// Identity roation
+	private float[][] R = {{1,0,0}, 
+		 				   {0,0,-1}, 
+		 				   {0,1,0}}; 
+	
+	// Camera intrinsics with f=1, cx=0, cy=0;
+	private float[][] K = {{1,0,0,0},
+						   {0,1,0,0},
+						   {0,0,1,0}};
 		 								 
-	private float[][] K = new float[][] {{1,0,0,0},
-		 								 {0,1,0,0},
-		 								 {0,0,1,0}};
-		 								 
-	private float[] t;
+	private float[] t = new float[3];
 	
 	private float f, cx, cy;
 	
-	public Camera(float[][] vertices, float width, boolean flip) {
+	/*
+	 * Initialises a camera to face an object
+	 * 
+	 * @param vertices Objects vertices
+	 * @param width Width of desired image
+	 */
+	public Camera(float[][] vertices, float width) {
 		// Find the minimum and maximum x,y,z
 		float[] min = vertices[0].clone(), max = vertices[0].clone();
 		
@@ -35,10 +43,14 @@ public class Camera {
 		float distance = (float) Math.sqrt(Math.pow(max[0]-min[0], 2) +
 											Math.pow(max[1]-min[1], 2) +
 											Math.pow(max[2]-min[2], 2));
-		float halfway = -0.5f*distance;
 		
-		// Translate camera to centre of image, 3x away from object
-		this.t = new float[] {halfway, halfway, halfway+(3*distance)};
+		// Calculate t matrix
+		float xT = -0.5f*(min[0]+max[0]);
+		float yT =  -0.5f*(min[1]+max[1]);
+		float zT = -0.5f*(min[2]+max[2]);
+		this.t[0] = (R[0][0]*xT) + (R[0][1]*yT) + (R[0][2]*zT);
+		this.t[1] = (R[1][0]*xT) + (R[1][1]*yT) + (R[1][2]*zT);
+		this.t[2] = (R[2][0]*xT) + (R[2][1]*yT) + (R[2][2]*zT) + (3*distance);
 		
 		// Initial project to camera coordinates using default R and K
 		float[][] projected = projectToCameraCoords(vertices);
@@ -75,7 +87,7 @@ public class Camera {
 		this.K[0][2] = cx;
 		this.K[1][2] = cy;
 		
-		//float[][] finalProjected = project(vertices);
+		//float[][] finalProjected = projectToCameraCoords(vertices);
 	}
 
 	/**
@@ -91,9 +103,9 @@ public class Camera {
 						 {R[1][0],R[1][1],R[1][2],t[1]},
 						 {R[2][0],R[2][1],R[2][2],t[2]},
 						 {0,0,0,1}};
-		float[][] KR_t = new float[K.length][R_t[0].length];
+		float[][] KR_t = new float[3][4];
 		float[][] transformed = new float[vertices.length][3];
-		float[][] projected = new float[vertices.length][2];
+		float[][] projected = new float[vertices.length][3];
 		
 		// K * R_t
 		for(int i=0; i<K.length; i++) {
@@ -117,6 +129,8 @@ public class Camera {
 			if (transformed[n][2] != 0) {
 				projected[n][0] = transformed[n][0]/transformed[n][2];
 				projected[n][1] = transformed[n][1]/transformed[n][2];
+				// For use by Z buffer later
+				projected[n][2] = transformed[n][2];
 			}
 		}
 		
@@ -131,7 +145,28 @@ public class Camera {
 		return this.cy;
 	}
 	
-	public float getF() {
-		return this.f;
+	public void quickFindMinMax(float[][] projected) {
+		float maxX = projected[0][0], minX = projected[0][0], 
+				maxY = projected[0][1], minY = projected[0][1];
+		
+		for (int i=0; i<projected.length; i++) {
+			if (projected[i][0] > maxX) {
+				maxX = projected[i][0];
+			}
+			if (projected[i][0] < minX) {
+				minX = projected[i][0];
+			}
+			if (projected[i][1] > maxY) {
+				maxY = projected[i][1];
+			}
+			if (projected[i][0] < minY) {
+				minY = projected[i][1];
+			}
+		}
+		
+		System.out.println("MinX: " + minX);
+		System.out.println("MaxX: " + maxX);
+		System.out.println("MinY: " + minY);
+		System.out.println("MaxY: " + maxY);
 	}
 }
