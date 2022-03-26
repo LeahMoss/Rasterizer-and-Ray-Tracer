@@ -2,7 +2,11 @@ package main.java;
 
 public class Camera {
 	
-	// Identity roation
+	// Identity rotation (for airplane)
+//	private float[][] R = {{1,0,0}, 
+//		 				   {0,1,0}, 
+//		 				   {0,0,1}}; 
+	// Rotation in x of 90 degrees (for teapot)
 	private float[][] R = {{1,0,0}, 
 		 				   {0,0,-1}, 
 		 				   {0,1,0}}; 

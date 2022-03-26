@@ -1,5 +1,6 @@
 package main.java;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -91,7 +92,7 @@ public class Rasterizer {
 			}
 			
 			for(int x=startX; x<=endX; x++) {
-				if(x < imageBuffer.getWidth() && y < imageBuffer.getHeight() ) {
+				if(x < imageBuffer.getWidth() && x > 0 && y < imageBuffer.getHeight() && y > 0) {
 					if(zBuffer.check(x, y, z)) {
 						// Paint pixel
 						imageBuffer.paintPixel(x,y);
@@ -157,19 +158,33 @@ public class Rasterizer {
 		for(int i=0; i<lines.length; i++) {
 			//i.e for each point in line
 			for(int j=0; j<lines[i].length; j++) {
+				int y = (int) lines[i][j][1];
 				
-				if(edgeList.containsKey((int) lines[i][j][1])) {
+				if(edgeList.containsKey(y)) {
 					float[] xz = {lines[i][j][0], lines[i][j][2]};
-					// Sort the floats[] by values of x
-					if(xz[0] < edgeList.get((int) lines[i][j][1]).getFirst()[0]) {
-						edgeList.get((int) lines[i][j][1]).add(0, xz);
+					
+					// Inset xz to the correct place in the linked list
+					boolean set = false;
+					for(int k=0; k<edgeList.get(y).size(); k++) {
+						float[] current = edgeList.get(y).get(k);
+						
+						if(xz[0] < current[0]) {
+							edgeList.get(y).add(k, xz);
+							set = true;
+							break;
+						}
 					}
+					
+					if(!set) {
+						edgeList.get(y).addLast(xz);
+					}
+					
 				}
 				else {
 					LinkedList<float[]> values = new LinkedList<float[]>();
 					float[] xz = {lines[i][j][0], lines[i][j][2]};
 					values.add(xz);
-					edgeList.put((int) lines[i][j][1], values);
+					edgeList.put(y, values);
 				}
 			}
 		}
@@ -190,28 +205,35 @@ public class Rasterizer {
 	 * @returns line The coordinates of the edge connecting two vertices with their corresponding z.
 	 */
 	private float[][] bresenham(int startX, int startY, float startZ, int endX, int endY, float endZ) {
+		
 		float[][] line = null;
 		
+		// Make sure startX < endX
 		if (startX > endX) {
 			line = bresenham(endX, endY, endZ, startX, startY, startZ);
 			return line;
 		}
 		else {
 			double gradient = 0;
-			
 			if((endY-startY) != 0) {
 				gradient = (double)(endY-startY)/(double)(endX-startX);
 			}
 			
+			// Negative gradient
 			if (gradient < 0) {
+				// Flip y signs and rerun
 				line = bresenham(startX, -startY, startZ, endX, -endY, endZ);
+				// Return y signs back to normal
 				for(int i=0; i<line.length; i++) {
 					line[i][1] *= -1;
 				}
 				return line;
 			}
+			// Gradient > 1
 			else if (gradient > 1) {
+				// Swap X and Y
 				line = bresenham(startY, startX, startZ, endY, endX, endZ);
+				// Swap X and Y back
 				for(int i=0; i<line.length; i++) {
 					float temp = line[i][0];
 					line[i][0] = line[i][1];
@@ -219,6 +241,7 @@ public class Rasterizer {
 				}
 				return line;
 			}
+			// 0 <= Gradient <= 1
 			else {
 				ArrayList<ArrayList<Integer>> points = new ArrayList<ArrayList<Integer>>();
 				int x = startX;
@@ -226,6 +249,7 @@ public class Rasterizer {
 				int dx = endX-startX;
 				int dy = endY-startY;
 				int d = (2*dy)-dx;
+				
 				while (x <= endX) {
 					ArrayList<Integer> point = new ArrayList<Integer>();
 					point.add(x);
@@ -243,17 +267,14 @@ public class Rasterizer {
 				
 				line = new float[points.size()][3];
 				
+				// Interpolate Z values along line
+				line[0][2] = Math.round(startZ*10f)/10f;
+				float zInc = (endZ-startZ)/((float)line.length-1f);
+				
 				for(int i=0; i<points.size(); i++) {
 					line[i][0] = points.get(i).get(0);
 					line[i][1] = points.get(i).get(1);
-				}
-				
-				// Interpolate Z values along line
-				line[0][2] = startZ;
-				float zInc = (endZ-startZ)/((float)line.length-1);
-				
-				for(int i=1; i<line.length; i++) {
-					line[i][2] = line[i-1][2] + zInc;
+					if (i>0) line[i][2] = ((Math.round((line[i-1][2] + zInc)*10f))/10f);
 				}
 				
 				return line;

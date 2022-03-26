@@ -11,6 +11,8 @@ public class ImageBuffer extends Buffer {
 	
 	private int backgroundColour = Color.BLACK.getRGB();
 	
+	private int colour = Color.WHITE.getRGB();
+	
 	private BufferedImage bufferedImage;
 	
 	public ImageBuffer() {
@@ -41,7 +43,7 @@ public class ImageBuffer extends Buffer {
 	 * @param y
 	 */
 	public void paintPixel(int x, int y) {
-		bufferedImage.setRGB(x, y, Color.WHITE.getRGB());
+		bufferedImage.setRGB(x, y, colour);
 	}
 	
 	/*
@@ -52,5 +54,9 @@ public class ImageBuffer extends Buffer {
 		ImageIO.write(bufferedImage, "jpg", outputfile);
 		
 		
+	}
+	
+	public void setColour(int colour) {
+		this.colour = colour;
 	}
 }
