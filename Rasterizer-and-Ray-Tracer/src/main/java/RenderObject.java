@@ -15,7 +15,7 @@ public class RenderObject {
 	private float[][] colours = null;
 	private int[][] faces = null;
 
-	private String path = getClass().getClassLoader().getResource("teapot.ply")
+	private String path = getClass().getClassLoader().getResource("duck.ply")
 			.toString().substring(6);
 	private File file = new File(path);
 
@@ -41,6 +41,7 @@ public class RenderObject {
 				if (points != null)
 					continue;
 				points = new float[vertexCount][3];
+				colours = new float[vertexCount][3];
 
 				Element element;
 				int x = 0;
@@ -49,6 +50,15 @@ public class RenderObject {
 					points[x][0] = (float) element.getDouble("x");
 					points[x][1] = (float) element.getDouble("y");
 					points[x][2] = (float) element.getDouble("z");
+					
+					try {
+						colours[x][0] = (float) element.getDouble("red") / 255f;
+						colours[x][1] = (float) element.getDouble("green") / 255f;
+						colours[x][2] = (float) element.getDouble("blue") / 255f;
+					} catch (Exception e) {
+						System.out.println("no colour");
+					}
+					
 					x++;
 				}
 
@@ -57,7 +67,6 @@ public class RenderObject {
 				if (faces != null)
 					continue;
 				faces = new int[triangleCount][3];
-				colours = new float[triangleCount][3];
 
 				Element element;
 				int x = 0;
@@ -83,13 +92,7 @@ public class RenderObject {
 					}
 
 					faces[x] = vertex_index;
-					try {
-						colours[x][0] = (float) element.getDouble("red") / 255f;
-						colours[x][1] = (float) element.getDouble("green") / 255f;
-						colours[x][2] = (float) element.getDouble("blue") / 255f;
-					} catch (Exception e) {
-						System.out.println("no colour");
-					}
+
 
 					x++;
 				}

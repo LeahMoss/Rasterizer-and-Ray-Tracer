@@ -9,9 +9,7 @@ import javax.imageio.ImageIO;
 
 public class ImageBuffer extends Buffer {
 	
-	private int backgroundColour = Color.BLACK.getRGB();
-	
-	private int colour = Color.WHITE.getRGB();
+	private int backgroundColour = Color.WHITE.getRGB();
 	
 	private BufferedImage bufferedImage;
 	
@@ -42,8 +40,9 @@ public class ImageBuffer extends Buffer {
 	 * @param x
 	 * @param y
 	 */
-	public void paintPixel(int x, int y) {
-		bufferedImage.setRGB(x, y, colour);
+	public void paintPixel(int x, int y, float[] colour) {
+		int colourRGB = convertToRGB(colour);
+		bufferedImage.setRGB(x, y, colourRGB);
 	}
 	
 	/*
@@ -56,7 +55,8 @@ public class ImageBuffer extends Buffer {
 		
 	}
 	
-	public void setColour(int colour) {
-		this.colour = colour;
+	public int convertToRGB(float[] colour) {
+		Color colourRGB = new Color(colour[0],colour[1],colour[2]);
+		return colourRGB.getRGB();
 	}
 }

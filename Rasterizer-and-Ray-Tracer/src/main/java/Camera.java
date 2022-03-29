@@ -6,10 +6,14 @@ public class Camera {
 //	private float[][] R = {{1,0,0}, 
 //		 				   {0,1,0}, 
 //		 				   {0,0,1}}; 
-	// Rotation in x of 90 degrees (for teapot)
+//	// Rotation in x of 90 degrees (for teapot)
+//	private float[][] R = {{1,0,0}, 
+//		 				   {0,0,-1}, 
+//		 				   {0,1,0}}; 
+	// Flip for duck
 	private float[][] R = {{1,0,0}, 
-		 				   {0,0,-1}, 
-		 				   {0,1,0}}; 
+						   {0,-1,0}, 
+						   {0,0,-1}}; 
 	
 	// Camera intrinsics with f=1, cx=0, cy=0;
 	private float[][] K = {{1,0,0,0},
@@ -54,7 +58,7 @@ public class Camera {
 		float zT = -0.5f*(min[2]+max[2]);
 		this.t[0] = (R[0][0]*xT) + (R[0][1]*yT) + (R[0][2]*zT);
 		this.t[1] = (R[1][0]*xT) + (R[1][1]*yT) + (R[1][2]*zT);
-		this.t[2] = (R[2][0]*xT) + (R[2][1]*yT) + (R[2][2]*zT) + (3*distance);
+		this.t[2] = (R[2][0]*xT) + (R[2][1]*yT) + (R[2][2]*zT) + (4*distance);
 		
 		// Initial project to camera coordinates using default R and K
 		float[][] projected = projectToCameraCoords(vertices);
@@ -82,8 +86,11 @@ public class Camera {
 		float height2d = 2*Math.max(maxY, Math.abs(minY));
 		float aspect = height2d/width2d;
 		
-		this.f = width/width2d;
+		// TODO FIX THIS
+//		this.f = (width/width2d)-10000;
+		this.f = (width/width2d);
 		this.cx = width/2;
+//		this.cy = (float) (Math.ceil(width*aspect)/2)-500;
 		this.cy = (float) (Math.ceil(width*aspect)/2);
 		
 		this.K[0][0] = f;
@@ -147,30 +154,5 @@ public class Camera {
 	
 	public float getCy() {
 		return this.cy;
-	}
-	
-	public void quickFindMinMax(float[][] projected) {
-		float maxX = projected[0][0], minX = projected[0][0], 
-				maxY = projected[0][1], minY = projected[0][1];
-		
-		for (int i=0; i<projected.length; i++) {
-			if (projected[i][0] > maxX) {
-				maxX = projected[i][0];
-			}
-			if (projected[i][0] < minX) {
-				minX = projected[i][0];
-			}
-			if (projected[i][1] > maxY) {
-				maxY = projected[i][1];
-			}
-			if (projected[i][0] < minY) {
-				minY = projected[i][1];
-			}
-		}
-		
-		System.out.println("MinX: " + minX);
-		System.out.println("MaxX: " + maxX);
-		System.out.println("MinY: " + minY);
-		System.out.println("MaxY: " + maxY);
 	}
 }
