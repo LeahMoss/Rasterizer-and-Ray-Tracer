@@ -41,6 +41,17 @@ public class ImageBuffer extends Buffer {
 	 * @param y
 	 */
 	public void paintPixel(int x, int y, float[] colour) {
+		// Deal with rounding errors in float type
+		for (int i=0; i<3; i++) {
+			if(colour[i] < 0) {
+				colour[i] = 0;
+			}
+			
+			if(colour[i] > 1) {
+				colour[i] = 1;
+			}
+		}
+		
 		int colourRGB = convertToRGB(colour);
 		bufferedImage.setRGB(x, y, colourRGB);
 	}

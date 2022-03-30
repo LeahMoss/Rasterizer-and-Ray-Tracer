@@ -56,67 +56,66 @@ public class Rasterizer {
 
 	/*
 	 * For each scanline the polygon is filled between the first and last values
-	 * of x. Z values are interpolated first which are used to check the Z-buffer.
+	 * of x. Z and RGB values are interpolated first. Then we check the Z-buffer.
 	 * Once we know this polygon isn't behind another, we can update the Z-buffer
 	 * and paint this pixel.
 	 * 
 	 * @params 
 	 */
 	private void fillPolygon(SortedMap<Integer, LinkedList<float[]>> edgeList) {
-		
-		for(int y : edgeList.keySet()) {
-			// When ever there is a gap between values of x we must interpolate
-			// the z and RGB values.
-
+		// For a given value of y, we can take the first and last element in the edge list
+		// and interpolate the z and RGB values between them. To do this we must find
+		// the increment value for each value of x between these 2 points.
+		for(int y : edgeList.keySet()) {			
+			int 	startX = (int) edgeList.get(y).getFirst()[0],
+					endX = (int) edgeList.get(y).getLast()[0];
 			
+			float 	z = edgeList.get(y).getFirst()[1],
+					r = edgeList.get(y).getFirst()[2], 
+					g= edgeList.get(y).getFirst()[3], 
+					b = edgeList.get(y).getFirst()[4];
 			
-			int startX = (int) edgeList.get(y).getFirst()[0];
-			int endX = (int) edgeList.get(y).getLast()[0];
-			
-			float startZ = edgeList.get(y).getFirst()[1];
-			float endZ = edgeList.get(y).getLast()[1];
-			
-			float startR = edgeList.get(y).getFirst()[2];
-			float endR = edgeList.get(y).getLast()[2];
-			
-			float startG = edgeList.get(y).getFirst()[3];
-			float endG = edgeList.get(y).getLast()[3];
-			
-			float startB = edgeList.get(y).getFirst()[4];
-			float endB = edgeList.get(y).getLast()[4];
-			
-			float z = startZ, r = startR, g= startG, b = startB;
-			float zInc, rInc, gInc, bInc;
-			
-			// To avoid divide by 0 case
-			if(endX-startX-1 != 0) {
-				zInc = (endZ-startZ)/(endX-startX-1);
-				rInc = Math.round(((endR-startR)/(endX-startX))*10000f)/10000;
-				gInc = Math.round(((endG-startG)/(endX-startX))*10000f)/10000;
-				bInc = Math.round(((endB-startB)/(endX-startX))*10000f)/10000;
-			}
-			else {
-				zInc = (endZ-startZ);
-				rInc = (endR-startR);
-				gInc = (endG-startG);
-				bInc = (endB-startB);
-			}
+			float 	zInc = findIncrement(z, edgeList.get(y).getLast()[1], endX-startX), 
+					rInc = findIncrement(r, edgeList.get(y).getLast()[2], endX-startX), 
+					gInc = findIncrement(g, edgeList.get(y).getLast()[3], endX-startX), 
+					bInc = findIncrement(b, edgeList.get(y).getLast()[4], endX-startX);
 			
 			for(int x=startX; x<=endX; x++) {
 				if(x < imageBuffer.getWidth() && x > 0 && y < imageBuffer.getHeight() && y > 0) {
 					if(zBuffer.check(x, y, z)) {
 						// Paint pixel
-						// TODO remove
-						float[] colour = {r,g,b};
+						float[] colour = {r, g, b};
 						imageBuffer.paintPixel(x,y,colour);
 					}
 				}
-				z += zInc;
-				r += rInc;
-				g += gInc;
-				b += bInc;
+				if (x == endX-1) {
+					z = edgeList.get(y).getLast()[1];
+					r = edgeList.get(y).getLast()[2];
+					g = edgeList.get(y).getLast()[3];
+					b = edgeList.get(y).getLast()[4];
+				}
+				else {
+					z += zInc;
+					r += rInc;
+					g += gInc;
+					b += bInc;
+				}
+				
 			}
 		}
+	}
+	
+	private float findIncrement(float first, float last, float number) {
+		float inc;
+		// To avoid divide by 0 case
+		if(number-1 != 0) {
+			// Don't want to have this number be less than 0.000000
+			inc = (last-first)/(number-1f);
+		}
+		else {
+			inc = last-first;
+		}
+		return inc;
 	}
 
 	/*
@@ -332,8 +331,7 @@ public class Rasterizer {
 			line[i][2] = line[i-1][2] + zInc;
 			line[i][3] = line[i-1][3] + rInc;
 			line[i][4] = line[i-1][4] + gInc;
-			line[i][5] = line[i-1][5] + bInc;
-			
+			line[i][5] = line[i-1][5] + bInc;	
 		}
 		
 		return line;
