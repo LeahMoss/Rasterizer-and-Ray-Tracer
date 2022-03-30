@@ -176,13 +176,8 @@ public class Rasterizer {
 		float[][][] lines = {line1, line2, line3};
 
 		for(int i=0; i<lines.length; i++) {
-			
 			// Before constructing edge list, interpolate Z and RGB values
-			for(int j=2; j<6; j++) {
-				lines[i][0][j] = polygonPixels[0][j];
-				lines[i][lines[i].length-1][j] = polygonPixels[1][j];
-			}
-			lines[i] = interpolateLine(lines[i]);
+			lines[i] = interpolateLine(lines[i], polygonPixels);
 			
 			//i.e for each point in line
 			for(int j=0; j<lines[i].length; j++) {
@@ -318,7 +313,24 @@ public class Rasterizer {
 	 * 
 	 * @param line a line with z and RGB values assigned to the first and last index
 	 */
-	public float[][] interpolateLine(float[][] line) {
+	public float[][] interpolateLine(float[][] line, float[][]polygonPixels) {
+		float endX = line[line.length-1][0];
+		float endY = line[line.length-1][1];
+		
+		// Find the correct Z and RGB values to assign to the start and end of the line
+		for(int i=0; i<3; i++) {
+			
+			if (polygonPixels[i][0] == line[0][0] && polygonPixels[i][1] == line[0][1]) {
+				for(int j=2; j<6; j++) line[0][j] = polygonPixels[i][j];
+			}
+			
+			if (polygonPixels[i][0] == line[line.length-1][0] && polygonPixels[i][1] == line[line.length-1][1]) {
+				for(int j=2; j<6; j++) line[line.length-1][j] = polygonPixels[i][j];;
+			}
+					
+		}
+		
+		
 		line[0][2] = Math.round(line[0][2]*100f)/100f;
 		line[line.length-1][2] = Math.round(line[line.length-1][2]*100f)/100f;
 		// Interpolate Z values along line

@@ -87,11 +87,11 @@ public class Camera {
 		float aspect = height2d/width2d;
 		
 		// TODO FIX THIS
-//		this.f = (width/width2d)-10000;
-		this.f = (width/width2d);
+		this.f = (width/width2d)-10000;
+//		this.f = (width/width2d);
 		this.cx = width/2;
-//		this.cy = (float) (Math.ceil(width*aspect)/2)-500;
-		this.cy = (float) (Math.ceil(width*aspect)/2);
+		this.cy = (float) (Math.ceil(width*aspect)/2)-500;
+//		this.cy = (float) (Math.ceil(width*aspect)/2);
 		
 		this.K[0][0] = f;
 		this.K[1][1] = f;
