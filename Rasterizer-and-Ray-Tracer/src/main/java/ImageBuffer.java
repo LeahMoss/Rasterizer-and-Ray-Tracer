@@ -9,10 +9,14 @@ import javax.imageio.ImageIO;
 
 public class ImageBuffer extends Buffer {
 	
-	private int backgroundColour = Color.WHITE.getRGB();
+	private int backgroundColour = Color.BLACK.getRGB();
 	
 	private BufferedImage bufferedImage;
 	
+	/*
+	 * Initialises the buffered image of size height x width and sets the background
+	 * to be black
+	 */
 	public ImageBuffer() {
 		bufferedImage = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
 		
@@ -37,8 +41,9 @@ public class ImageBuffer extends Buffer {
 	/*
 	 * Updates the value in the image buffer of the point x,y
 	 * 
-	 * @param x
+	 * @param x 
 	 * @param y
+	 * @param colour RGB values
 	 */
 	public void paintPixel(int x, int y, float[] colour) {
 		// Deal with rounding errors in float type
@@ -58,12 +63,12 @@ public class ImageBuffer extends Buffer {
 	
 	/*
 	 * Converts the image buffer into an image
+	 * 
+	 * @param name Name of file
 	 */
-	public void convertToImage() throws IOException {
-		File outputfile = new File("image.jpg");
+	public void convertToImage(String name) throws IOException {
+		File outputfile = new File(name);
 		ImageIO.write(bufferedImage, "jpg", outputfile);
-		
-		
 	}
 	
 	public int convertToRGB(float[] colour) {

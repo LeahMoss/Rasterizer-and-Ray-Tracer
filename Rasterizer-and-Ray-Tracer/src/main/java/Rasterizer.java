@@ -16,6 +16,9 @@ public class Rasterizer {
 	
 	private ZBuffer zBuffer = new ZBuffer();
 	
+	/*
+	 * Initialises rasterizer with given object and camera
+	 */
 	public Rasterizer(RenderObject object, Camera camera) {
 		this.object = object;
 		this.camera = camera;
@@ -31,11 +34,21 @@ public class Rasterizer {
 	 * - - Check Z buffer
 	 * - - If closer update z buffer and paint pixel
 	 */
-	public void render() {
+	public void start() {
 		try {
 			object = new RenderObject();
-			camera = new Camera(object.getPoints(), imageBuffer.getWidth());
-
+			camera = new Camera();
+			
+			/************************************************************
+			 * 
+			 *				 CHANGE CAMERA ROTATIONS HERE
+			 * 
+			 ************************************************************/
+//			camera.setR(camera.Rx90);
+			
+			camera.calibrate(object.getPoints(), imageBuffer.getWidth(), 
+					imageBuffer.getHeight(), true);
+			
 			//i.e. for each polygon
 			for (int i=0; i<object.getFaces().length; i++) {
 				// Pass polygon's vertices to project to 2D
@@ -46,7 +59,10 @@ public class Rasterizer {
 				// Fill the polygon
 				fillPolygon(edgeList);
 			}
-			imageBuffer.convertToImage();
+			
+			imageBuffer.convertToImage("image.jpg");
+			zBuffer.convertToImage("image_Z-Buffer.jpg");			
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -60,7 +76,7 @@ public class Rasterizer {
 	 * Once we know this polygon isn't behind another, we can update the Z-buffer
 	 * and paint this pixel.
 	 * 
-	 * @params 
+	 * @param edgeList Edge list for a polygon
 	 */
 	private void fillPolygon(SortedMap<Integer, LinkedList<float[]>> edgeList) {
 		// For a given value of y, we can take the first and last element in the edge list
@@ -105,6 +121,14 @@ public class Rasterizer {
 		}
 	}
 	
+	/*
+	 * Finds the increment value for interpolations
+	 * 
+	 * @param first Start value
+	 * @param last End Value
+	 * @param number Number of values in interpolation
+	 * @return inc Increment value
+	 */
 	private float findIncrement(float first, float last, float number) {
 		float inc;
 		// To avoid divide by 0 case
@@ -312,10 +336,10 @@ public class Rasterizer {
 	 * Interpolation of Z and RBG values along a line
 	 * 
 	 * @param line a line with z and RGB values assigned to the first and last index
+	 * @param polygonPixels Potential end of line points
+	 * @return line Line with interpolated values
 	 */
-	public float[][] interpolateLine(float[][] line, float[][]polygonPixels) {
-		float endX = line[line.length-1][0];
-		float endY = line[line.length-1][1];
+	private float[][] interpolateLine(float[][] line, float[][] polygonPixels) {
 		
 		// Find the correct Z and RGB values to assign to the start and end of the line
 		for(int i=0; i<3; i++) {

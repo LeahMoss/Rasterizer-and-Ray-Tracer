@@ -2,19 +2,35 @@ package main.java;
 
 public class Camera {
 	
-	// Identity rotation (for airplane)
-//	private float[][] R = {{1,0,0}, 
-//		 				   {0,1,0}, 
-//		 				   {0,0,1}}; 
-//	// Rotation in x of 90 degrees (for teapot)
-//	private float[][] R = {{1,0,0}, 
-//		 				   {0,0,-1}, 
-//		 				   {0,1,0}}; 
-	// Flip for duck
-	private float[][] R = {{1,0,0}, 
+	// Identity rotation
+	public float[][] RI = {{1,0,0}, 
+		 				   {0,1,0}, 
+		 				   {0,0,1}}; 
+	
+	// Rotation in x of 90 degrees
+	public float[][] Rx90 = {{1,0,0}, 
+		 				      {0,0,-1}, 
+		 				      {0,1,0}}; 
+	
+	// Rotation in y of 90 degrees
+	public float[][] Ry90 = {{0,0,1}, 
+			 				  {0,1,0}, 
+			 				  {-1,0,0}}; 
+	
+	// Rotation in y of 90 degrees
+	public float[][] Rz90 = {{0,-1,0}, 
+				 			  {1,0,0}, 
+				 			  {0,0,1}}; 
+		
+	// Flip
+	public float[][] RF = {{1,0,0}, 
 						   {0,-1,0}, 
 						   {0,0,-1}}; 
 	
+	private float[][] R = {{1,0,0}, 
+						   {0,1,0}, 
+						   {0,0,1}};	
+				
 	// Camera intrinsics with f=1, cx=0, cy=0;
 	private float[][] K = {{1,0,0,0},
 						   {0,1,0,0},
@@ -29,8 +45,12 @@ public class Camera {
 	 * 
 	 * @param vertices Objects vertices
 	 * @param width Width of desired image
+	 * @param height Height of desired image
+	 * @param flip True if the render is initially upside down
 	 */
-	public Camera(float[][] vertices, float width) {
+	public void calibrate(float[][] vertices, float width, float height, boolean flip) {
+		if (flip) this.R = matMul(this.R,this.RF);
+		
 		// Find the minimum and maximum x,y,z
 		float[] min = vertices[0].clone(), max = vertices[0].clone();
 		
@@ -56,9 +76,9 @@ public class Camera {
 		float xT = -0.5f*(min[0]+max[0]);
 		float yT =  -0.5f*(min[1]+max[1]);
 		float zT = -0.5f*(min[2]+max[2]);
-		this.t[0] = (R[0][0]*xT) + (R[0][1]*yT) + (R[0][2]*zT);
-		this.t[1] = (R[1][0]*xT) + (R[1][1]*yT) + (R[1][2]*zT);
-		this.t[2] = (R[2][0]*xT) + (R[2][1]*yT) + (R[2][2]*zT) + (4*distance);
+		this.t[0] = (this.R[0][0]*xT) + (this.R[0][1]*yT) + (this.R[0][2]*zT);
+		this.t[1] = (this.R[1][0]*xT) + (this.R[1][1]*yT) + (this.R[1][2]*zT);
+		this.t[2] = (this.R[2][0]*xT) + (this.R[2][1]*yT) + (this.R[2][2]*zT) + (4*distance);
 		
 		// Initial project to camera coordinates using default R and K
 		float[][] projected = projectToCameraCoords(vertices);
@@ -84,57 +104,57 @@ public class Camera {
 		
 		float width2d = 2*Math.max(maxX, Math.abs(minX));
 		float height2d = 2*Math.max(maxY, Math.abs(minY));
-		float aspect = height2d/width2d;
 		
-		// TODO FIX THIS
-		this.f = (width/width2d)-10000;
-//		this.f = (width/width2d);
+		if (width2d < height2d) {
+//			float aspect = height2d/width2d;
+			this.f = (width/width2d);
+//			this.cx = width/2;
+//			this.cy =  (float) (Math.ceil(width*aspect)/2);
+		}
+		else {
+//			float aspect = width2d/height2d;
+			this.f = (height/height2d);
+//			this.cx = (float) (Math.ceil(height*aspect)/2);
+//			this.cy = height/2;
+		}
+		
 		this.cx = width/2;
-		this.cy = (float) (Math.ceil(width*aspect)/2)-500;
-//		this.cy = (float) (Math.ceil(width*aspect)/2);
-		
+		this.cy = height/2;
+				
 		this.K[0][0] = f;
 		this.K[1][1] = f;
 		this.K[0][2] = cx;
 		this.K[1][2] = cy;
 		
-		//float[][] finalProjected = projectToCameraCoords(vertices);
 	}
 
 	/**
 	* Performs perspective projection on a given list of vertices using
 	* given camera parameters.
 	*
-	* @param vertices
-	* @return transformed pixels
+	* @param vertices Vertices to project
+	* @return projected Transformed pixels
 	*/
 	public float[][] projectToCameraCoords(float[][] vertices) {
 		
-		float[][] R_t = {{R[0][0],R[0][1],R[0][2],t[0]},
-						 {R[1][0],R[1][1],R[1][2],t[1]},
-						 {R[2][0],R[2][1],R[2][2],t[2]},
+		float[][] R_t = {{this.R[0][0],this.R[0][1],this.R[0][2],this.t[0]},
+						 {this.R[1][0],this.R[1][1],this.R[1][2],this.t[1]},
+						 {this.R[2][0],this.R[2][1],this.R[2][2],this.t[2]},
 						 {0,0,0,1}};
 		float[][] KR_t = new float[3][4];
 		float[][] transformed = new float[vertices.length][3];
 		float[][] projected = new float[vertices.length][3];
 		
-		// K * R_t
-		for(int i=0; i<K.length; i++) {
-			for (int j=0; j<R_t[0].length; j++) {
-				KR_t[i][j] = (K[i][0]*R_t[0][j] + 
-								K[i][1]*R_t[1][j] + 
-								K[i][2]*R_t[2][j] + 
-								K[i][3]*R_t[3][j]);
-			}
-		}
+		// K * R_t		
+		KR_t = matMul(K, R_t);
 		
 		// (K * R_t) * Vertices
 		for (int n=0; n<vertices.length; n++) {
 			for(int i=0; i<KR_t.length; i++) {
 				transformed[n][i] = (KR_t[i][0] * vertices[n][0] +
-						KR_t[i][1] * vertices[n][1] +
-						KR_t[i][2] * vertices[n][2]) +
-						KR_t[i][3] * 1;
+									 KR_t[i][1] * vertices[n][1] +
+									 KR_t[i][2] * vertices[n][2]) +
+									 KR_t[i][3] * 1;
 			}
 			
 			if (transformed[n][2] != 0) {
@@ -148,11 +168,45 @@ public class Camera {
 		return projected;
 	}
 	
+	/*
+	 * Multiplies 2 matrices
+	 * 
+	 * @param mat1 Left hand matrix
+	 * @param mat2 Right hand matrix
+	 * @return result Product of mat1 x mat2
+	 */
+	public float[][] matMul(float[][] mat1, float[][] mat2) {
+		float[][] result = new float[mat1.length][mat2[0].length];
+		
+		for(int i=0; i<mat1.length; i++) {
+			for (int j=0; j<mat2[0].length; j++) {
+				for(int k=0; k<mat1[0].length; k++) {
+					result[i][j] += (mat1[i][k]*mat2[k][j]);
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	/*
+	 * @return cx
+	 */
 	public float getCx() {
 		return this.cx;
 	}
 	
+	/*
+	 * @return xy
+	 */
 	public float getCy() {
 		return this.cy;
+	}
+	
+	/*
+	 * @param newR New value for R
+	 */
+	public void setR(float[][] newR) {
+		this.R = newR;
 	}
 }

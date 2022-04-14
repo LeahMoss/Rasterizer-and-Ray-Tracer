@@ -104,14 +104,23 @@ public class RenderObject {
 		ply.close();
 	}
 
+	/*
+	 * @return points
+	 */
 	public float[][] getPoints(){
 		return this.points;
 	}
 
+	/*
+	 * @return faces
+	 */
 	public int[][] getFaces(){
 		return this.faces;
 	}
 
+	/*
+	 * @return colours
+	 */
 	public float[][] getColors(){
 		return this.colours;
 	}
