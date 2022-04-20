@@ -106,16 +106,10 @@ public class Camera {
 		float height2d = 2*Math.max(maxY, Math.abs(minY));
 		
 		if (width2d < height2d) {
-//			float aspect = height2d/width2d;
 			this.f = (width/width2d);
-//			this.cx = width/2;
-//			this.cy =  (float) (Math.ceil(width*aspect)/2);
 		}
 		else {
-//			float aspect = width2d/height2d;
 			this.f = (height/height2d);
-//			this.cx = (float) (Math.ceil(height*aspect)/2);
-//			this.cy = height/2;
 		}
 		
 		this.cx = width/2;

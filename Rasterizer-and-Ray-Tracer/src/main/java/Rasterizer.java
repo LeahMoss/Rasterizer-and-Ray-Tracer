@@ -34,7 +34,7 @@ public class Rasterizer {
 	 * - - Check Z buffer
 	 * - - If closer update z buffer and paint pixel
 	 */
-	public void start() {
+	public void render() {
 		try {
 			object = new RenderObject();
 			camera = new Camera();
@@ -71,78 +71,6 @@ public class Rasterizer {
 	}
 
 	/*
-	 * For each scanline the polygon is filled between the first and last values
-	 * of x. Z and RGB values are interpolated first. Then we check the Z-buffer.
-	 * Once we know this polygon isn't behind another, we can update the Z-buffer
-	 * and paint this pixel.
-	 * 
-	 * @param edgeList Edge list for a polygon
-	 */
-	private void fillPolygon(SortedMap<Integer, LinkedList<float[]>> edgeList) {
-		// For a given value of y, we can take the first and last element in the edge list
-		// and interpolate the z and RGB values between them. To do this we must find
-		// the increment value for each value of x between these 2 points.
-		for(int y : edgeList.keySet()) {			
-			int 	startX = (int) edgeList.get(y).getFirst()[0],
-					endX = (int) edgeList.get(y).getLast()[0];
-			
-			float 	z = edgeList.get(y).getFirst()[1],
-					r = edgeList.get(y).getFirst()[2], 
-					g= edgeList.get(y).getFirst()[3], 
-					b = edgeList.get(y).getFirst()[4];
-			
-			float 	zInc = findIncrement(z, edgeList.get(y).getLast()[1], endX-startX), 
-					rInc = findIncrement(r, edgeList.get(y).getLast()[2], endX-startX), 
-					gInc = findIncrement(g, edgeList.get(y).getLast()[3], endX-startX), 
-					bInc = findIncrement(b, edgeList.get(y).getLast()[4], endX-startX);
-			
-			for(int x=startX; x<=endX; x++) {
-				if(x < imageBuffer.getWidth() && x > 0 && y < imageBuffer.getHeight() && y > 0) {
-					if(zBuffer.check(x, y, z)) {
-						// Paint pixel
-						float[] colour = {r, g, b};
-						imageBuffer.paintPixel(x,y,colour);
-					}
-				}
-				if (x == endX-1) {
-					z = edgeList.get(y).getLast()[1];
-					r = edgeList.get(y).getLast()[2];
-					g = edgeList.get(y).getLast()[3];
-					b = edgeList.get(y).getLast()[4];
-				}
-				else {
-					z += zInc;
-					r += rInc;
-					g += gInc;
-					b += bInc;
-				}
-				
-			}
-		}
-	}
-	
-	/*
-	 * Finds the increment value for interpolations
-	 * 
-	 * @param first Start value
-	 * @param last End Value
-	 * @param number Number of values in interpolation
-	 * @return inc Increment value
-	 */
-	private float findIncrement(float first, float last, float number) {
-		float inc;
-		// To avoid divide by 0 case
-		if(number-1 != 0) {
-			// Don't want to have this number be less than 0.000000
-			inc = (last-first)/(number-1f);
-		}
-		else {
-			inc = last-first;
-		}
-		return inc;
-	}
-
-	/*
 	 * For each polygon (face) retrieve the vertices at each index. These are then projected
 	 * to camera coordinates and converted to pixel coordinates.
 	 * 
@@ -152,13 +80,13 @@ public class Rasterizer {
 	private float[][] projectToPixelCoords(int[] vertexIndices) {
 		float[][] polygonVerts = new float[3][3];
 		float[][] projectedVerts = new float[3][6];
-
+	
 		polygonVerts[0] = object.getPoints()[vertexIndices[0]];
 		polygonVerts[1] = object.getPoints()[vertexIndices[1]];
 		polygonVerts[2] = object.getPoints()[vertexIndices[2]];
-
+	
 		float[][] cameraCoords = camera.projectToCameraCoords(polygonVerts);
-
+	
 		for (int j=0; j<3; j++) {
 			projectedVerts[j][0] = (int) Math.ceil(cameraCoords[j][0]);
 			projectedVerts[j][1] = (int) Math.ceil(cameraCoords[j][1]);
@@ -170,9 +98,9 @@ public class Rasterizer {
 		}
 		
 		return projectedVerts;
-
-	}
 	
+	}
+
 	/*
 	 * Finds the pixel points of the edges of the polygon and then constructs the edge list. 
 	 * The edge list has a linked list for each y value. The linked list contains an array
@@ -198,7 +126,7 @@ public class Rasterizer {
 				(int)polygonPixels[2][0], (int)polygonPixels[2][1]);
 		
 		float[][][] lines = {line1, line2, line3};
-
+	
 		for(int i=0; i<lines.length; i++) {
 			// Before constructing edge list, interpolate Z and RGB values
 			lines[i] = interpolateLine(lines[i], polygonPixels);
@@ -246,7 +174,7 @@ public class Rasterizer {
 		
 		return edgeList;
 	}
-	
+
 	/*
 	 * Bresenham's line algorithm on the x and y values with interpolation of the Z values along 
 	 * the line.
@@ -371,5 +299,77 @@ public class Rasterizer {
 		}
 		
 		return line;
+	}
+
+	/*
+	 * For each scanline the polygon is filled between the first and last values
+	 * of x. Z and RGB values are interpolated first. Then we check the Z-buffer.
+	 * Once we know this polygon isn't behind another, we can update the Z-buffer
+	 * and paint this pixel.
+	 * 
+	 * @param edgeList Edge list for a polygon
+	 */
+	private void fillPolygon(SortedMap<Integer, LinkedList<float[]>> edgeList) {
+		// For a given value of y, we can take the first and last element in the edge list
+		// and interpolate the z and RGB values between them. To do this we must find
+		// the increment value for each value of x between these 2 points.
+		for(int y : edgeList.keySet()) {			
+			int 	startX = (int) edgeList.get(y).getFirst()[0],
+					endX = (int) edgeList.get(y).getLast()[0];
+			
+			float 	z = edgeList.get(y).getFirst()[1],
+					r = edgeList.get(y).getFirst()[2], 
+					g= edgeList.get(y).getFirst()[3], 
+					b = edgeList.get(y).getFirst()[4];
+			
+			float 	zInc = findIncrement(z, edgeList.get(y).getLast()[1], endX-startX), 
+					rInc = findIncrement(r, edgeList.get(y).getLast()[2], endX-startX), 
+					gInc = findIncrement(g, edgeList.get(y).getLast()[3], endX-startX), 
+					bInc = findIncrement(b, edgeList.get(y).getLast()[4], endX-startX);
+			
+			for(int x=startX; x<=endX; x++) {
+				if(x < imageBuffer.getWidth() && x > 0 && y < imageBuffer.getHeight() && y > 0) {
+					if(zBuffer.check(x, y, z)) {
+						// Paint pixel
+						float[] colour = {r, g, b};
+						imageBuffer.paintPixel(x,y,colour);
+					}
+				}
+				if (x == endX-1) {
+					z = edgeList.get(y).getLast()[1];
+					r = edgeList.get(y).getLast()[2];
+					g = edgeList.get(y).getLast()[3];
+					b = edgeList.get(y).getLast()[4];
+				}
+				else {
+					z += zInc;
+					r += rInc;
+					g += gInc;
+					b += bInc;
+				}
+				
+			}
+		}
+	}
+
+	/*
+	 * Finds the increment value for interpolations
+	 * 
+	 * @param first Start value
+	 * @param last End Value
+	 * @param number Number of values in interpolation
+	 * @return inc Increment value
+	 */
+	private float findIncrement(float first, float last, float number) {
+		float inc;
+		// To avoid divide by 0 case
+		if(number-1 != 0) {
+			// Don't want to have this number be less than 0.000000
+			inc = (last-first)/(number-1f);
+		}
+		else {
+			inc = last-first;
+		}
+		return inc;
 	}
 }

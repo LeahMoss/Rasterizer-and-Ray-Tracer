@@ -6,7 +6,7 @@ public class Main {
 		RenderObject object = null;
 		Camera camera = null;
 		Rasterizer rasterizer = new Rasterizer(object, camera);
-		rasterizer.start();
+		rasterizer.render();
 	}
 
 }
