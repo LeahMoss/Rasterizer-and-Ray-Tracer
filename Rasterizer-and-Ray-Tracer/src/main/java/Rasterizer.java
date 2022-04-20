@@ -44,7 +44,7 @@ public class Rasterizer {
 			 *				 CHANGE CAMERA ROTATIONS HERE
 			 * 
 			 ************************************************************/
-//			camera.setR(camera.Rx90);
+			camera.setR(camera.matMul(camera.matMul(camera.Ry45, camera.Ry225), camera.Rz225));
 			
 			camera.calibrate(object.getPoints(), imageBuffer.getWidth(), 
 					imageBuffer.getHeight(), true);

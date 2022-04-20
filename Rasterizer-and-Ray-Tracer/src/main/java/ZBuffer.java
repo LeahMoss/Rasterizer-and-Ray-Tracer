@@ -66,7 +66,6 @@ public class ZBuffer extends Buffer {
 				}
 			}
 		}
-		max = max-min;
 		
 		byte[] databuffer = ((DataBufferByte)zBuffer.getRaster().getDataBuffer()).getData();
 		
@@ -78,7 +77,7 @@ public class ZBuffer extends Buffer {
 				else {
 					// Z value divided by max value to get val between 0 and 1
 					// Invert so when val = 1 it becomes 0 (want far away to be black = 0)
-					databuffer[(y*width)+x] = (byte) (((((buffer[y][x]-min)/max)-1f)*-1f)*255f);
+					databuffer[(y*width)+x] = (byte) (((((buffer[y][x]-min)/(max-min))-1f)*-1f)*255f);
 				}
 			}
 		}

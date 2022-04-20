@@ -20,7 +20,37 @@ public class Camera {
 	// Rotation in y of 90 degrees
 	public float[][] Rz90 = {{0,-1,0}, 
 				 			  {1,0,0}, 
-				 			  {0,0,1}}; 
+				 			  {0,0,1}};
+	
+	// Rotation in x of 45 degrees
+	public float[][] Rx45 = {{1,0,0}, 
+							 {0,(float) Math.cos(Math.PI/4),(float) -Math.sin(Math.PI/4)}, 
+							 {0,(float) Math.sin(Math.PI/4),(float) Math.cos(Math.PI/4)}}; 
+
+	// Rotation in y of 45 degrees
+	public float[][] Ry45 = {{(float) Math.cos(Math.PI/4),0,(float) Math.sin(Math.PI/4)}, 
+							 {0,1,0}, 
+							 {(float) -Math.sin(Math.PI/4),0,(float) Math.cos(Math.PI/4)}}; 
+
+	// Rotation in y of 45 degrees
+	public float[][] Rz45 = {{(float) Math.cos(Math.PI/4),(float) -Math.sin(Math.PI/4),0}, 
+						 	 {(float) Math.sin(Math.PI/4),(float) Math.cos(Math.PI/4),0}, 
+						 	 {0,0,1}};
+	
+	// Rotation in x of 45 degrees
+		public float[][] Rx225 = {{1,0,0}, 
+								 {0,(float) Math.cos(Math.PI/8),(float) -Math.sin(Math.PI/8)}, 
+								 {0,(float) Math.sin(Math.PI/8),(float) Math.cos(Math.PI/8)}}; 
+
+		// Rotation in y of 45 degrees
+		public float[][] Ry225 = {{(float) Math.cos(Math.PI/8),0,(float) Math.sin(Math.PI/8)}, 
+								 {0,1,0}, 
+								 {(float) -Math.sin(Math.PI/8),0,(float) Math.cos(Math.PI/8)}}; 
+
+		// Rotation in y of 45 degrees
+		public float[][] Rz225 = {{(float) Math.cos(Math.PI/8),(float) -Math.sin(Math.PI/8),0}, 
+							 	 {(float) Math.sin(Math.PI/8),(float) Math.cos(Math.PI/8),0}, 
+							 	 {0,0,1}};
 		
 	// Flip
 	public float[][] RF = {{1,0,0}, 
@@ -105,7 +135,7 @@ public class Camera {
 		float width2d = 2*Math.max(maxX, Math.abs(minX));
 		float height2d = 2*Math.max(maxY, Math.abs(minY));
 		
-		if (width2d < height2d) {
+		if (width < height) {
 			this.f = (width/width2d);
 		}
 		else {
