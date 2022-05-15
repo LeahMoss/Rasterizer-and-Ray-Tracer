@@ -111,7 +111,7 @@ public class Camera {
 		this.t[2] = (this.R[2][0]*xT) + (this.R[2][1]*yT) + (this.R[2][2]*zT) + (4*distance);
 		
 		// Initial project to camera coordinates using default R and K
-		float[][] projected = projectToCameraCoords(vertices);
+		float[][] projected = perspectiveProjection(vertices);
 		
 		// Find the maximum x,y values of project vertices
 		float maxX = projected[0][0], minX = projected[0][0], 
@@ -145,11 +145,12 @@ public class Camera {
 		this.cx = width/2;
 		this.cy = height/2;
 				
-		this.K[0][0] = f;
-		this.K[1][1] = f;
+		this.K[0][0] = f/1.5f;
+		this.K[1][1] = f/1.5f;
 		this.K[0][2] = cx;
 		this.K[1][2] = cy;
 		
+		this.t[0] -= 1;
 	}
 
 	/**
@@ -159,7 +160,7 @@ public class Camera {
 	* @param vertices Vertices to project
 	* @return projected Transformed pixels
 	*/
-	public float[][] projectToCameraCoords(float[][] vertices) {
+	public float[][] perspectiveProjection(float[][] vertices) {
 		
 		float[][] R_t = {{this.R[0][0],this.R[0][1],this.R[0][2],this.t[0]},
 						 {this.R[1][0],this.R[1][1],this.R[1][2],this.t[1]},

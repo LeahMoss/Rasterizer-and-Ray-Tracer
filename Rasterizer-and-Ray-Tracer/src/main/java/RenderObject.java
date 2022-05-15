@@ -15,7 +15,7 @@ public class RenderObject {
 	private float[][] colours = null;
 	private int[][] faces = null;
 
-	private String path = getClass().getClassLoader().getResource("duck.ply")
+	private String path = getClass().getClassLoader().getResource("blub.ply")
 			.toString().substring(6);
 	private File file = new File(path);
 
@@ -50,14 +50,10 @@ public class RenderObject {
 					points[x][0] = (float) element.getDouble("x");
 					points[x][1] = (float) element.getDouble("y");
 					points[x][2] = (float) element.getDouble("z");
-					
-					try {
-						colours[x][0] = (float) element.getDouble("red") / 255f;
-						colours[x][1] = (float) element.getDouble("green") / 255f;
-						colours[x][2] = (float) element.getDouble("blue") / 255f;
-					} catch (Exception e) {
-						System.out.println("no colour");
-					}
+
+					colours[x][0] = (float) element.getDouble("red") / 255f;
+					colours[x][1] = (float) element.getDouble("green") / 255f;
+					colours[x][2] = (float) element.getDouble("blue") / 255f;
 					
 					x++;
 				}
@@ -71,27 +67,27 @@ public class RenderObject {
 				Element element;
 				int x = 0;
 				while ((element = reader.readElement()) != null) {
-					int[] vertex_index = null;
+					int[] vertex_indices = null;
 
 					try {
-						vertex_index = element.getIntList("vertex_indices");
+						vertex_indices = element.getIntList("vertex_indices");
 					}
 
 					catch (Exception e) {}
 
-					if(vertex_index == null) {
+					if(vertex_indices == null) {
 						try {
-							vertex_index = element.getIntList("vertex_index");
+							vertex_indices = element.getIntList("vertex_index");
 						}
 
 						catch (Exception e) {}
 					}
 
-					if(vertex_index == null) {
+					if(vertex_indices == null) {
 						throw new IOException("Failed to read vertices");
 					}
 
-					faces[x] = vertex_index;
+					faces[x] = vertex_indices;
 
 
 					x++;

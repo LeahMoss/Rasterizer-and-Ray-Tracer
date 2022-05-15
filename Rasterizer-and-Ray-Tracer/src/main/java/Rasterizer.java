@@ -44,7 +44,8 @@ public class Rasterizer {
 			 *				 CHANGE CAMERA ROTATIONS HERE
 			 * 
 			 ************************************************************/
-			camera.setR(camera.matMul(camera.matMul(camera.Ry45, camera.Ry225), camera.Rz225));
+//			camera.setR(camera.matMul(camera.matMul(camera.Ry45, camera.Ry225), camera.Rz225));
+			camera.setR(camera.Ry90);
 			
 			camera.calibrate(object.getPoints(), imageBuffer.getWidth(), 
 					imageBuffer.getHeight(), true);
@@ -85,7 +86,7 @@ public class Rasterizer {
 		polygonVerts[1] = object.getPoints()[vertexIndices[1]];
 		polygonVerts[2] = object.getPoints()[vertexIndices[2]];
 	
-		float[][] cameraCoords = camera.projectToCameraCoords(polygonVerts);
+		float[][] cameraCoords = camera.perspectiveProjection(polygonVerts);
 	
 		for (int j=0; j<3; j++) {
 			projectedVerts[j][0] = (int) Math.ceil(cameraCoords[j][0]);
@@ -282,15 +283,17 @@ public class Rasterizer {
 					
 		}
 		
+		// Round the Z values to 4.d.p
+		line[0][2] = Math.round(line[0][2]*10000f)/10000f;
+		line[line.length-1][2] = Math.round(line[line.length-1][2]*10000f)/10000f;
 		
-		line[0][2] = Math.round(line[0][2]*100f)/100f;
-		line[line.length-1][2] = Math.round(line[line.length-1][2]*100f)/100f;
-		// Interpolate Z values along line
-		float zInc = Math.round(((line[line.length-1][2]-line[0][2])/(line.length-1f))*100f)/100f;
+		// Finding the increments
+		float zInc = Math.round(((line[line.length-1][2]-line[0][2])/(line.length-1f))*10000f)/10000f;
 		float rInc = (line[line.length-1][3]-line[0][3])/(line.length-1f);
 		float gInc = (line[line.length-1][4]-line[0][4])/(line.length-1f);
 		float bInc = (line[line.length-1][5]-line[0][5])/(line.length-1f);
 		
+		// Interpolation
 		for(int i=1; i<line.length-1; i++) {
 			line[i][2] = line[i-1][2] + zInc;
 			line[i][3] = line[i-1][3] + rInc;
@@ -364,7 +367,6 @@ public class Rasterizer {
 		float inc;
 		// To avoid divide by 0 case
 		if(number-1 != 0) {
-			// Don't want to have this number be less than 0.000000
 			inc = (last-first)/(number-1f);
 		}
 		else {

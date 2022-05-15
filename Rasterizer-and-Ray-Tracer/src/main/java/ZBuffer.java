@@ -55,18 +55,20 @@ public class ZBuffer extends Buffer {
 		// Use min as the near clipping plane
 		// Use max as the far clipping plane
 		float max = 0, min = Float.POSITIVE_INFINITY;
+		
 		for(int y=0; y<this.height; y++) {
 			for(int x=0; x<this.width; x++) {
-				if (max < buffer[y][x] && buffer[y][x] != Float.POSITIVE_INFINITY) {
-					max = buffer[y][x];
-				}
 				
-				if (min > buffer[y][x]) {
+				if (max < buffer[y][x] && buffer[y][x] != Float.POSITIVE_INFINITY) 
+					max = buffer[y][x];
+				
+				if (min > buffer[y][x]) 
 					min = buffer[y][x];
-				}
+				
 			}
 		}
 		
+		// Direct reference to the data inside BufferedImage
 		byte[] databuffer = ((DataBufferByte)zBuffer.getRaster().getDataBuffer()).getData();
 		
 		for(int y=0; y<this.height; y++) {
